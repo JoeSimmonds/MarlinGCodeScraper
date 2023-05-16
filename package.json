@@ -1,0 +1,20 @@
+{
+  "name": "gcodescraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "scratch": "node scratch.js",
+    "test": "jasmine"
+  },
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "cheerio": "file:../cheerio"
+  },
+  "devDependencies": {
+    "jasmine": "^4.5.0"
+  }
+}

@@ -1,0 +1,52 @@
+{
+    "$schema": "https://appliedengdesign.github.io/cnccodes-json-schema/draft/2022-07/schema",
+    "type": "mcode",
+    "machineType": "printer",
+    "title": "M Code Marlin Reference",
+    "variant": {
+        "name": "marlin",
+        "remove": [
+            "M02"
+        ]
+    },
+    "description": "M-code liosting for Marlin firmware 3d Printers",
+    "codes": {
+        "M03": {
+            "category": "mcode",
+            "shortDesc": "Spindle CW/Laser On",
+            "desc": "Wait for moves to complete, then set the spindle speed (clockwise) or laser power.",
+            "parameters": {
+                "I": {
+                    "shortDesc": "Inline mode ON / OFF.",
+                    "optional": true
+                },
+                "O": {
+                    "shortDesc": "Spindle speed or laser power",
+                    "desc": "Spindle speed or laser power in PWM 0-255 value range",
+                    "optional": true
+                },
+                "S": {
+                    "shortDesc": "Spindle speed or laser power",
+                    "desc": "Spindle speed or laser power in the configured value range",
+                    "optional": true
+                }
+            }
+        },
+        "M105": {
+            "category": "mcode",
+            "shortDesc": "Report Temperatures",
+            "desc": "Request a temperature report to be sent to the host as soon as possible.",
+            "parameters": {
+                "T": {
+                    "optional": true,
+                    "shortDesc": "Hotend index"
+                },
+                "R": {
+                    "desc": "Include the Redundant temperature sensor (if any)",
+                    "optional": true,
+                    "shortDesc": "Include Redundant"
+                }
+            }
+        }
+    }
+}
