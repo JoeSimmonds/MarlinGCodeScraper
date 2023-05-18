@@ -12,7 +12,8 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "cheerio": "file:../cheerio"
+    "cheerio": "file:../cheerio",
+    "command-line-args": "^5.2.1"
   },
   "devDependencies": {
     "jasmine": "^4.5.0"

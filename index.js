@@ -1,17 +1,36 @@
 import * as https from 'https'
 import * as cheerio from'cheerio'
 import * as fs from 'fs'
+import * as path from 'path'
+import cla from 'command-line-args'
 
 const scheme = "https://"
 const address = "marlinfw.org"
-const path = "/meta/gcode/"
+const slug = "/meta/gcode/"
 const baseUrl = scheme + address
 
+const outputDir = "out"
+const cacheDir = path.join(outputDir, "cache")
+
+const optionDefinitions = [
+    { name: 'cache', alias: 'c', type: Boolean },
+    { name: 'use-cache', alias: 'u', type: Boolean}
+]
+const options = cla(optionDefinitions)
+
+go().then(d => {
+    const converted = splitData(d)
+    if(!fs.existsSync(outputDir)) fs.mkdirSync(outputDir)
+    for (const codeType in converted) {
+        fs.writeFileSync(path.join(outputDir,`${codeType}.marlin.cncc.json`), JSON.stringify(converted[codeType], null, 2))
+    }
+})
+
 async function go() {
-    const indexPage = await makeRequest(baseUrl + path)
+    const indexPage = await getHtml(baseUrl + slug)
     const codes = scrapeIndexPage(indexPage)
     for (const f in codes) {
-        const codePage = await makeRequest(baseUrl + codes[f]._link)
+        const codePage = await getHtml(baseUrl + codes[f]._link)
         const codeData = scrapeCodePage(codePage)
         for (const cf in codeData) {
             codes[f][cf] = codeData[cf]
@@ -32,14 +51,6 @@ function splitData(data) {
     }
     return res
 }
-
-go().then(d => {
-    const converted = splitData(d)
-    if(!fs.existsSync('./out')) fs.mkdirSync('./out')
-    for (const codeType in converted) {
-        fs.writeFileSync(`./out/${codeType}.marlin.cncc.json`, JSON.stringify(converted[codeType], null, 2))
-    }
-})
 
 export function arrayToMap(arr, keySelector) {
     const result = {};
@@ -181,24 +192,60 @@ function scrapeIndexPage(pageHtml) {
     return arrayToMap(repeatEntries(data.codes, '_code'), '_code')
 }
 
+export function urlAsFileName(url) {
+    return url
+      .replaceAll('/', '_FSLASH_')
+      .replaceAll(':', '_COLON_')
+      .replaceAll('.', '_DOT_')
+}
+
+function getHtml(url) {
+    if (options['use-cache']) {
+        return readFromCache(url)
+    } else {
+        return makeRequest(url)
+    }
+}
+
+function readFromCache(url) {
+    process.stdout.write(`Getting ${url} from cache...`)
+    const filename = urlAsFileName(url)
+    if (fs.existsSync(path.join(cacheDir, filename))) {
+        const data = fs.readFileSync(path.join(cacheDir, filename))
+        process.stdout.write('Done \n')
+        return data
+    } else {
+        process.stdout.write('Not found \n')
+        return makeRequest(url)
+    }
+    throw new Error("Not implemeted")
+}
+
 function makeRequest(url) {
-    console.log(`GET ${url}...`)
+    process.stdout.write(`GET ${url} ...`)
     return new Promise((resolve, reject) => {
         https
-        .get(url, resp => {
-        let data = "";
+          .get(url, resp => {
+              let data = "";
 
-        resp.on("data", chunk => {
-            data += chunk;
-        });
+              resp.on("data", chunk => {
+                  data += chunk;
+              });
 
-        resp.on("end", () => {
-            console.log(`Done ${url} ${resp.statusCode}`)
-            resolve(data);
-        });
-        })
-        .on("error", err => {
-            reject(err.message);
-        });
+              resp.on("end", () => {
+                  process.stdout.write(`Done ${resp.statusCode} `)
+                  if (options.cache) {
+                      const filename = urlAsFileName(url)
+                      if(!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, {recursive:true})
+                      fs.writeFileSync(path.join(cacheDir, filename), data)
+                      process.stdout.write('Written to cache')
+                  }
+                  process.stdout.write('\n')
+                  resolve(data);
+              });
+          })
+          .on("error", err => {
+              reject(err.message);
+          });
     })
 }

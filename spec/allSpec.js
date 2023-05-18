@@ -123,3 +123,22 @@ describe('stripFields', function() {
         expect(input).toEqual({foo:"moo", bar:{baz:"maz"}})
     })
 });
+
+describe('urlAsFileName', () => {
+    it('should process a full url', () => {
+        expect(SUT.urlAsFileName('https://marlinfw.org/docs/gcode/M261.html'))
+          .toEqual('https_COLON__FSLASH__FSLASH_marlinfw_DOT_org_FSLASH_docs_FSLASH_gcode_FSLASH_M261_DOT_html')
+    })
+
+    it('should Replace forward slashes',() => {
+        expect(SUT.urlAsFileName('xxx/xxx')).toEqual('xxx_FSLASH_xxx')
+    } )
+
+    it('should Replace colons',() => {
+        expect(SUT.urlAsFileName('xxx:xxx')).toEqual('xxx_COLON_xxx')
+    })
+
+    it('should Replace dots',() => {
+        expect(SUT.urlAsFileName('xxx.xxx')).toEqual('xxx_DOT_xxx')
+    })
+})
